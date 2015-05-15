@@ -1,0 +1,103 @@
+<?php
+include("api.inc");
+
+/**
+ * Implements hook_help().
+ *
+ * Displays help and module information.
+ *
+ * @param path
+ *   Which path of the site we're using to display help
+ * @param arg
+ *   Array that holds the current path as returned from arg() function
+ */
+function ix_one_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#ix_one":
+      return '<p>' . t("Displays products from IX-One") . '</p>';
+      break;
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function ix_one_block_info() {
+  $blocks['ix_one'] = array(
+    // The name that will appear in the block list.
+    'info' => t('IX-One'),
+    // Default setting.
+    'cache' => DRUPAL_CACHE_PER_ROLE,
+  );
+  return $blocks;
+}
+
+/**
+ * Custom content function.
+ *
+ * Set beginning and end dates, retrieve posts from database
+ * saved in that time period.
+ *
+ * @return
+ *   A result set of the targeted posts.
+ */
+function ix_one_contents($pageSize = 500, $call = 'updated', $startDate = "01/01/2014", $filter, $display) {
+  //Get today's date.
+  $items = getItems($pageSize, 'updated', $startDate, $filter, $display);
+  return $items;
+	//return array('I don\'t hate you.', 'I really don\'t hate you.');
+}
+
+function ix_one_menu() {
+  $items = array();
+  $items['ix_one/form'] = array(
+    'title' => 'IX-One Form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ix_one_form'),
+    'access callback' => TRUE,
+    'description' => 'How to use the #states attribute in FAPI',
+    'file' => 'ix_one_form.inc',
+  );
+  return $items;
+}
+/*
+function ix_one_theme($existing, $type, $theme, $path) {
+  require_once 'ix_one_form.inc';
+  return _form_example_element_theme($existing, $type, $theme, $path);
+}
+*/
+/**
+ * Implements hook_block_view().
+ *
+ * Prepares the contents of the block.
+ */
+function ix_one_block_view($delta = '') {
+  switch ($delta) {
+    case 'ix_one':
+      $block['subject'] = t('IX One');
+      if (user_access('access content')) {
+        // Use our custom function to retrieve data.
+        $results = ix_one_contents();
+
+        // Array to contain items for the block to render.
+        $items = array();
+        // Iterate over the resultset and format as links.
+        $products = $results['products'];
+        foreach ($products as $product) {
+          $items[] = array(
+            'data' => $product['name']
+          );
+        }
+       // No content in the last week.
+        if (empty($items)) {
+          $block['content'] = t('No posts available.');
+        }
+        else {
+          // Pass data through theme function.
+          $block['content'] = theme('item_list', array(
+            'items' => $items));
+        }
+      }
+    return $block;
+  }
+}
