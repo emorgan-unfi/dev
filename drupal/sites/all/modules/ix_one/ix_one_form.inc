@@ -178,9 +178,16 @@ function ix_one_form_submit($form, &$form_state) {
 
   $start_date = implode("/", $form_state['values']['start_date']);
 
-  $items = ix_one_contents($pageSize, 'updated', $startDate, $filter, $display);
-  var_dump($items);
+  $items = getItems($page_size, 'updated', $start_date, $filter, $display);
+  //var_dump($items);
+  foreach($items as $item)
+  {
+    echo("<pre>");
+    var_dump($item);
+    echo("</pre>");
+  }
   die();
+  //drupal_set_message($items);
 }
 
 /**
